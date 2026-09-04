@@ -121,9 +121,11 @@ border:1px solid #ccc;
 </div>
 
 
+<!-- EXCHANGE -->
+
 <div id="exchangeSourceWrap" class="hidden">
 
-<label>Does the Exchange come from Warehouse or DSC stock?</label>
+<label>Unit provided from:</label>
 <select id="exchangeSource">
 <option value="">Select</option>
 <option value="Warehouse">Warehouse</option>
@@ -135,7 +137,7 @@ border:1px solid #ccc;
 
 <div id="exchangeSerialWrap" class="hidden">
 
-<label>Please provide the serial number for the Exchange:</label>
+<label>Enter the serial number of the replacement unit provided to the customer from DSC:</label>
 <input type="text" id="exchangeSerial">
 
 </div>
@@ -149,9 +151,11 @@ border:1px solid #ccc;
 </div>
 
 
+<!-- UNREPAIRABLE SALE -->
+
 <div id="unrepairableSaleSourceWrap" class="hidden">
 
-<label>Does the Sale come from Warehouse or DSC stock?</label>
+<label>Unit provided from:</label>
 <select id="unrepairableSaleSource">
 <option value="">Select</option>
 <option value="Warehouse">Warehouse</option>
@@ -163,13 +167,13 @@ border:1px solid #ccc;
 
 <div id="unrepairableSaleSerialWrap" class="hidden">
 
-<label>Please provide the serial number for the Sale:</label>
+<label>Enter the serial number of the replacement unit provided to the customer from DSC:</label>
 <input type="text" id="unrepairableSaleSerial">
 
 </div>
 
 
-<!-- REFUSED TO REPAIR FLOW -->
+<!-- REFUSED TO REPAIR -->
 
 <div id="replacementWrap" class="hidden">
 
@@ -183,9 +187,11 @@ border:1px solid #ccc;
 </div>
 
 
+<!-- REFUSED TO REPAIR SALE -->
+
 <div id="refusedSaleSourceWrap" class="hidden">
 
-<label>Does the Sale come from Warehouse or DSC stock?</label>
+<label>Unit provided from:</label>
 <select id="refusedSaleSource">
 <option value="">Select</option>
 <option value="Warehouse">Warehouse</option>
@@ -197,11 +203,35 @@ border:1px solid #ccc;
 
 <div id="refusedSaleSerialWrap" class="hidden">
 
-<label>Please provide the serial number for the Sale:</label>
+<label>Enter the serial number of the replacement unit provided to the customer from DSC:</label>
 <input type="text" id="refusedSaleSerial">
 
 </div>
 
+
+<!-- RECYCLE -->
+
+<div id="recycleWrap" class="hidden">
+
+<label>Did the customer choose to recycle their unit?</label>
+<select id="recycleChoice">
+<option value="">Select</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+
+</div>
+
+
+<div id="recycleSerialWrap" class="hidden">
+
+<label>Enter the serial number of the unit being recycled:</label>
+<input type="text" id="recycleSerial">
+
+</div>
+
+
+<!-- ADVISE CUSTOMER -->
 
 <label>Advise customer:</label>
 <textarea id="advise"></textarea>
@@ -283,6 +313,12 @@ const refusedSaleSource = $("refusedSaleSource");
 const refusedSaleSerialWrap = $("refusedSaleSerialWrap");
 const refusedSaleSerial = $("refusedSaleSerial");
 
+const recycleWrap = $("recycleWrap");
+const recycleChoice = $("recycleChoice");
+
+const recycleSerialWrap = $("recycleSerialWrap");
+const recycleSerial = $("recycleSerial");
+
 const advise = $("advise");
 
 const returnTrackingSection = $("returnTrackingSection");
@@ -291,6 +327,17 @@ const trackingWrap = $("trackingWrap");
 const tracking = $("tracking");
 
 const output = $("output");
+
+
+function sourceText(value){
+
+if(value === "DSC"){
+return "Dyson Service Center";
+}
+
+return value;
+
+}
 
 
 function updateConditional(){
@@ -319,20 +366,28 @@ const isExchange =
 isUnrepairable &&
 unrepairableAction.value === "Exchange";
 
+
 const isUnrepairableSale =
 isUnrepairable &&
 unrepairableAction.value === "Sale";
 
+
+/* EXCHANGE */
 
 exchangeSourceWrap.classList.toggle(
 "hidden",
 !isExchange
 );
 
+
 exchangeSerialWrap.classList.toggle(
 "hidden",
-!(isExchange && exchangeSource.value === "DSC")
+!(
+isExchange &&
+exchangeSource.value === "DSC"
+)
 );
+
 
 exchangeWhyWrap.classList.toggle(
 "hidden",
@@ -340,10 +395,13 @@ exchangeWhyWrap.classList.toggle(
 );
 
 
+/* UNREPAIRABLE SALE */
+
 unrepairableSaleSourceWrap.classList.toggle(
 "hidden",
 !isUnrepairableSale
 );
+
 
 unrepairableSaleSerialWrap.classList.toggle(
 "hidden",
@@ -358,6 +416,7 @@ unrepairableSaleSource.value === "DSC"
 
 const isRefused =
 outcome === "Refused to Repair";
+
 
 replacementWrap.classList.toggle(
 "hidden",
@@ -382,6 +441,30 @@ refusedSaleSerialWrap.classList.toggle(
 refusedPurchasedYes &&
 refusedSaleSource.value === "DSC"
 )
+);
+
+
+/* RECYCLE */
+
+const showRecycleSection =
+isRefused ||
+isUnrepairableSale;
+
+
+recycleWrap.classList.toggle(
+"hidden",
+!showRecycleSection
+);
+
+
+const recycleYes =
+showRecycleSection &&
+recycleChoice.value === "Yes";
+
+
+recycleSerialWrap.classList.toggle(
+"hidden",
+!recycleYes
 );
 
 
@@ -414,13 +497,16 @@ function buildNotes(){
 
 const lines = [];
 
+
 lines.push(
 `| What was the issue reported: ${issue.value}`
 );
 
+
 lines.push(
 `| What was found with unit: ${found.value}`
 );
+
 
 lines.push(
 `| What was the repair outcome?: ${repairOutcome.value}`
@@ -436,17 +522,19 @@ lines.push(
 );
 
 
+/* EXCHANGE */
+
 if(unrepairableAction.value === "Exchange"){
 
 lines.push(
-`| Exchange source: ${exchangeSource.value}`
+`| Unit provided from: ${sourceText(exchangeSource.value)}`
 );
 
 
 if(exchangeSource.value === "DSC"){
 
 lines.push(
-`| Exchange serial number: ${exchangeSerial.value}`
+`| Replacement unit serial number: ${exchangeSerial.value}`
 );
 
 }
@@ -459,17 +547,33 @@ lines.push(
 }
 
 
+/* SALE */
+
 if(unrepairableAction.value === "Sale"){
 
 lines.push(
-`| Sale source: ${unrepairableSaleSource.value}`
+`| Unit provided from: ${sourceText(unrepairableSaleSource.value)}`
 );
 
 
 if(unrepairableSaleSource.value === "DSC"){
 
 lines.push(
-`| Sale serial number: ${unrepairableSaleSerial.value}`
+`| Replacement unit serial number: ${unrepairableSaleSerial.value}`
+);
+
+}
+
+
+lines.push(
+`| Did the customer choose to recycle their unit?: ${recycleChoice.value}`
+);
+
+
+if(recycleChoice.value === "Yes"){
+
+lines.push(
+`| Recycled unit serial number: ${recycleSerial.value}`
 );
 
 }
@@ -491,22 +595,38 @@ lines.push(
 if(replacementPurchased.value === "Yes"){
 
 lines.push(
-`| Sale source: ${refusedSaleSource.value}`
+`| Unit provided from: ${sourceText(refusedSaleSource.value)}`
 );
 
 
 if(refusedSaleSource.value === "DSC"){
 
 lines.push(
-`| Sale serial number: ${refusedSaleSerial.value}`
+`| Replacement unit serial number: ${refusedSaleSerial.value}`
 );
 
 }
 
 }
 
+
+lines.push(
+`| Did the customer choose to recycle their unit?: ${recycleChoice.value}`
+);
+
+
+if(recycleChoice.value === "Yes"){
+
+lines.push(
+`| Recycled unit serial number: ${recycleSerial.value}`
+);
+
 }
 
+}
+
+
+/* ADVISE CUSTOMER */
 
 lines.push(
 `| Advise customer: ${advise.value}`
@@ -532,6 +652,7 @@ lines.push(
 );
 
 }
+
 
 else if(trackingMode.value === "Enter Tracking"){
 
@@ -580,6 +701,7 @@ output.textContent
 
 const toast =
 document.createElement("div");
+
 
 toast.textContent = "Copied!";
 
