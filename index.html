@@ -87,16 +87,44 @@ button.secondary{
 <label>What was found with unit:</label>
 <textarea id="found"></textarea>
 
-<label>Was it a repair or an exchange:</label>
-<select id="repairExchange">
+<label>What was the repair outcome?</label>
+<select id="repairOutcome">
     <option value="">Select</option>
     <option>Repair</option>
-    <option>Exchange</option>
+    <option>Unrepairable</option>
+    <option>Refused to Repair</option>
 </select>
+
+<div id="resolutionWrap" class="hidden">
+    <label>Was it an Exchange or a Sale?</label>
+    <select id="resolutionType">
+        <option value="">Select</option>
+        <option>Exchange</option>
+        <option>Sale</option>
+    </select>
+</div>
+
+<div id="replacementWrap" class="hidden">
+    <label>Did customer purchase a replacement?</label>
+    <select id="replacementPurchased">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+    </select>
+</div>
 
 <div id="exchangeSourceWrap" class="hidden">
     <label>Does the exchange come from Warehouse or DSC stock?</label>
     <select id="exchangeSource">
+        <option value="">Select</option>
+        <option>Warehouse</option>
+        <option>DSC</option>
+    </select>
+</div>
+
+<div id="saleSourceWrap" class="hidden">
+    <label>Does the sale come from Warehouse or DSC stock?</label>
+    <select id="saleSource">
         <option value="">Select</option>
         <option>Warehouse</option>
         <option>DSC</option>
@@ -148,10 +176,20 @@ const $ = id => document.getElementById(id);
 
 const issue = $("issue");
 const found = $("found");
-const repairExchange = $("repairExchange");
+
+const repairOutcome = $("repairOutcome");
+
+const resolutionWrap = $("resolutionWrap");
+const resolutionType = $("resolutionType");
+
+const replacementWrap = $("replacementWrap");
+const replacementPurchased = $("replacementPurchased");
 
 const exchangeSource = $("exchangeSource");
 const exchangeSourceWrap = $("exchangeSourceWrap");
+
+const saleSource = $("saleSource");
+const saleSourceWrap = $("saleSourceWrap");
 
 const dscSerial = $("dscSerial");
 const dscSerialWrap = $("dscSerialWrap");
@@ -169,21 +207,58 @@ const output = $("output");
 
 function updateConditional(){
 
-    const isExchange = repairExchange.value === "Exchange";
+    const isUnrepairable =
+        repairOutcome.value === "Unrepairable";
+
+    const isRefused =
+        repairOutcome.value === "Refused to Repair";
+
+    const isExchange =
+        isUnrepairable &&
+        resolutionType.value === "Exchange";
+
+    const isSale =
+        (isUnrepairable &&
+         resolutionType.value === "Sale")
+        ||
+        (isRefused &&
+         replacementPurchased.value === "Yes");
+
+    resolutionWrap.classList.toggle(
+        "hidden",
+        !isUnrepairable
+    );
+
+    replacementWrap.classList.toggle(
+        "hidden",
+        !isRefused
+    );
 
     exchangeSourceWrap.classList.toggle(
         "hidden",
         !isExchange
     );
 
-    dscSerialWrap.classList.toggle(
-        "hidden",
-        !(isExchange && exchangeSource.value === "DSC")
-    );
-
     exchangeWhyWrap.classList.toggle(
         "hidden",
         !isExchange
+    );
+
+    saleSourceWrap.classList.toggle(
+        "hidden",
+        !isSale
+    );
+
+    const showSerial =
+        (isExchange &&
+         exchangeSource.value === "DSC")
+        ||
+        (isSale &&
+         saleSource.value === "DSC");
+
+    dscSerialWrap.classList.toggle(
+        "hidden",
+        !showSerial
     );
 
     trackingWrap.classList.toggle(
@@ -198,84 +273,12 @@ function buildNotes(){
 
     lines.push(`| What was the issue reported: ${issue.value}`);
     lines.push(`| What was found with unit: ${found.value}`);
-    lines.push(`| Was it a repair or an exchange: ${repairExchange.value}`);
+    lines.push(`| What was the repair outcome?: ${repairOutcome.value}`);
 
-    if(repairExchange.value === "Exchange"){
-
-        lines.push(
-            `| Exchange source: ${exchangeSource.value}`
-        );
-
-        if(exchangeSource.value === "DSC"){
-            lines.push(
-                `| DSC serial number: ${dscSerial.value}`
-            );
-        }
+    if(repairOutcome.value === "Unrepairable"){
 
         lines.push(
-            `| If exchange, why was it exchanged?: ${exchangeWhy.value}`
+            `| Resolution: ${resolutionType.value}`
         );
-    }
 
-    lines.push(`| Advise customer: ${advise.value}`);
-
-    if(trackingMode.value === "N/A Walk-In"){
-        lines.push(`| Return tracking number: N/A Walk-In`);
-    }
-    else if(trackingMode.value === "Enter Tracking"){
-        lines.push(`| Return tracking number: ${tracking.value}`);
-    }
-
-    output.textContent = lines.join("\n");
-}
-
-document.querySelectorAll("textarea,input,select").forEach(el => {
-
-    el.addEventListener("input", () => {
-        updateConditional();
-        buildNotes();
-    });
-
-    el.addEventListener("change", () => {
-        updateConditional();
-        buildNotes();
-    });
-
-});
-
-$("copyBtn").onclick = async () => {
-
-    await navigator.clipboard.writeText(output.textContent);
-
-    const toast = document.createElement("div");
-
-    toast.textContent = "Copied!";
-    toast.style.position = "fixed";
-    toast.style.bottom = "20px";
-    toast.style.right = "20px";
-    toast.style.background = "#111";
-    toast.style.color = "#fff";
-    toast.style.padding = "10px 14px";
-    toast.style.borderRadius = "10px";
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => toast.remove(), 1200);
-};
-
-$("clearBtn").onclick = () => {
-
-    document.querySelectorAll("textarea,input").forEach(e => e.value = "");
-    document.querySelectorAll("select").forEach(e => e.selectedIndex = 0);
-
-    updateConditional();
-    buildNotes();
-};
-
-updateConditional();
-buildNotes();
-
-</script>
-
-</body>
-</html>
+        if(resolutionType.value
