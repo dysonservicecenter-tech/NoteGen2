@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Note Generator</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#f5f5f5;
+}
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
+.card{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:16px;
+}
+label{
+    font-weight:bold;
+    margin-top:12px;
+    display:block;
+}
+textarea,
+input,
+select{
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    box-sizing:border-box;
+}
+textarea{
+    min-height:80px;
+}
+.hidden{
+    display:none;
+}
+.output{
+    white-space:pre-wrap;
+    border:1px solid #ccc;
+    border-radius:10px;
+    padding:14px;
+    min-height:220px;
+    background:#fff;
+}
+.actions{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+}
+button{
+    padding:10px 14px;
+    border-radius:10px;
+    border:0;
+    background:#111;
+    color:#fff;
+    cursor:pointer;
+}
+button.secondary{
+    background:#eee;
+    color:#111;
+    border:1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Note Generator</h2>
+
+<div class="card">
+
+<label>What was the issue reported:</label>
+<textarea id="issue"></textarea>
+
+<label>What was found with unit:</label>
+<textarea id="found"></textarea>
+
+<label>Was it a repair or an exchange:</label>
+<select id="repairExchange">
+    <option value="">Select</option>
+    <option>Repair</option>
+    <option>Exchange</option>
+</select>
+
+<div id="exchangeSourceWrap" class="hidden">
+    <label>Does the exchange come from Warehouse or DSC stock?</label>
+    <select id="exchangeSource">
+        <option value="">Select</option>
+        <option>Warehouse</option>
+        <option>DSC</option>
+    </select>
+</div>
+
+<div id="dscSerialWrap" class="hidden">
+    <label>Please provide the serial number:</label>
+    <input type="text" id="dscSerial">
+</div>
+
+<div id="exchangeWhyWrap" class="hidden">
+    <label>If exchange, why was it exchanged?</label>
+    <textarea id="exchangeWhy"></textarea>
+</div>
+
+<label>Advise customer:</label>
+<textarea id="advise"></textarea>
+
+<label>Return tracking number:</label>
+<select id="trackingMode">
+    <option value="">Select</option>
+    <option value="N/A Walk-In">N/A Walk-In</option>
+    <option value="Enter Tracking">Enter Tracking</option>
+</select>
+
+<div id="trackingWrap" class="hidden">
+    <label>Tracking number:</label>
+    <input type="text" id="tracking">
+</div>
+
+<div class="actions">
+    <button id="copyBtn">Copy Notes</button>
+    <button id="clearBtn" class="secondary">Clear</button>
+</div>
+
+</div>
+
+<div class="card">
+    <h3>Generated Notes</h3>
+    <div class="output" id="output"></div>
+</div>
+
+</div>
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+const issue = $("issue");
+const found = $("found");
+const repairExchange = $("repairExchange");
+
+const exchangeSource = $("exchangeSource");
+const exchangeSourceWrap = $("exchangeSourceWrap");
+
+const dscSerial = $("dscSerial");
+const dscSerialWrap = $("dscSerialWrap");
+
+const exchangeWhy = $("exchangeWhy");
+const exchangeWhyWrap = $("exchangeWhyWrap");
+
+const advise = $("advise");
+
+const trackingMode = $("trackingMode");
+const trackingWrap = $("trackingWrap");
+const tracking = $("tracking");
+
+const output = $("output");
+
+function updateConditional(){
+
+    const isExchange = repairExchange.value === "Exchange";
+
+    exchangeSourceWrap.classList.toggle(
+        "hidden",
+        !isExchange
+    );
+
+    dscSerialWrap.classList.toggle(
+        "hidden",
+        !(isExchange && exchangeSource.value === "DSC")
+    );
+
+    exchangeWhyWrap.classList.toggle(
+        "hidden",
+        !isExchange
+    );
+
+    trackingWrap.classList.toggle(
+        "hidden",
+        trackingMode.value !== "Enter Tracking"
+    );
+}
+
+function buildNotes(){
+
+    const lines = [];
+
+    lines.push(`| What was the issue reported: ${issue.value}`);
+    lines.push(`| What was found with unit: ${found.value}`);
+    lines.push(`| Was it a repair or an exchange: ${repairExchange.value}`);
+
+    if(repairExchange.value === "Exchange"){
+
+        lines.push(
+            `| Exchange source: ${exchangeSource.value}`
+        );
+
+        if(exchangeSource.value === "DSC"){
+            lines.push(
+                `| DSC serial number: ${dscSerial.value}`
+            );
+        }
+
+        lines.push(
+            `| If exchange, why was it exchanged?: ${exchangeWhy.value}`
+        );
+    }
+
+    lines.push(`| Advise customer: ${advise.value}`);
+
+    if(trackingMode.value === "N/A Walk-In"){
+        lines.push(`| Return tracking number: N/A Walk-In`);
+    }
+    else if(trackingMode.value === "Enter Tracking"){
+        lines.push(`| Return tracking number: ${tracking.value}`);
+    }
+
+    output.textContent = lines.join("\n");
+}
+
+document.querySelectorAll("textarea,input,select").forEach(el => {
+
+    el.addEventListener("input", () => {
+        updateConditional();
+        buildNotes();
+    });
+
+    el.addEventListener("change", () => {
+        updateConditional();
+        buildNotes();
+    });
+
+});
+
+$("copyBtn").onclick = async () => {
+
+    await navigator.clipboard.writeText(output.textContent);
+
+    const toast = document.createElement("div");
+
+    toast.textContent = "Copied!";
+    toast.style.position = "fixed";
+    toast.style.bottom = "20px";
+    toast.style.right = "20px";
+    toast.style.background = "#111";
+    toast.style.color = "#fff";
+    toast.style.padding = "10px 14px";
+    toast.style.borderRadius = "10px";
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.remove(), 1200);
+};
+
+$("clearBtn").onclick = () => {
+
+    document.querySelectorAll("textarea,input").forEach(e => e.value = "");
+    document.querySelectorAll("select").forEach(e => e.selectedIndex = 0);
+
+    updateConditional();
+    buildNotes();
+};
+
+updateConditional();
+buildNotes();
+
+</script>
+
+</body>
+</html>
