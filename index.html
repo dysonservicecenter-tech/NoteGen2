@@ -107,9 +107,11 @@ border:1px solid #ccc;
 </select>
 
 
+<!-- UNREPAIRABLE FLOW -->
+
 <div id="unrepairableWrap" class="hidden">
 
-<label>Was it an exchange or a Sale?</label>
+<label>Was it an Exchange or a Sale?</label>
 <select id="unrepairableAction">
 <option value="">Select</option>
 <option value="Exchange">Exchange</option>
@@ -147,10 +149,10 @@ border:1px solid #ccc;
 </div>
 
 
-<div id="saleSourceWrap" class="hidden">
+<div id="unrepairableSaleSourceWrap" class="hidden">
 
 <label>Does the Sale come from Warehouse or DSC stock?</label>
-<select id="saleSource">
+<select id="unrepairableSaleSource">
 <option value="">Select</option>
 <option value="Warehouse">Warehouse</option>
 <option value="DSC">DSC</option>
@@ -159,22 +161,44 @@ border:1px solid #ccc;
 </div>
 
 
-<div id="saleSerialWrap" class="hidden">
+<div id="unrepairableSaleSerialWrap" class="hidden">
 
 <label>Please provide the serial number for the Sale:</label>
-<input type="text" id="saleSerial">
+<input type="text" id="unrepairableSaleSerial">
 
 </div>
 
+
+<!-- REFUSED TO REPAIR FLOW -->
 
 <div id="replacementWrap" class="hidden">
 
 <label>Did the customer purchase a replacement?</label>
 <select id="replacementPurchased">
 <option value="">Select</option>
-<option value="Yes">Yes</option>
 <option value="No">No</option>
+<option value="Yes">Yes</option>
 </select>
+
+</div>
+
+
+<div id="refusedSaleSourceWrap" class="hidden">
+
+<label>Does the Sale come from Warehouse or DSC stock?</label>
+<select id="refusedSaleSource">
+<option value="">Select</option>
+<option value="Warehouse">Warehouse</option>
+<option value="DSC">DSC</option>
+</select>
+
+</div>
+
+
+<div id="refusedSaleSerialWrap" class="hidden">
+
+<label>Please provide the serial number for the Sale:</label>
+<input type="text" id="refusedSaleSerial">
 
 </div>
 
@@ -182,6 +206,8 @@ border:1px solid #ccc;
 <label>Advise customer:</label>
 <textarea id="advise"></textarea>
 
+
+<!-- RETURN TRACKING -->
 
 <div id="returnTrackingSection" class="hidden">
 
@@ -193,8 +219,10 @@ border:1px solid #ccc;
 </select>
 
 <div id="trackingWrap" class="hidden">
+
 <label>Tracking number:</label>
 <input type="text" id="tracking">
+
 </div>
 
 </div>
@@ -231,23 +259,29 @@ const repairOutcome = $("repairOutcome");
 const unrepairableWrap = $("unrepairableWrap");
 const unrepairableAction = $("unrepairableAction");
 
-const exchangeSource = $("exchangeSource");
 const exchangeSourceWrap = $("exchangeSourceWrap");
+const exchangeSource = $("exchangeSource");
 
-const exchangeSerial = $("exchangeSerial");
 const exchangeSerialWrap = $("exchangeSerialWrap");
+const exchangeSerial = $("exchangeSerial");
 
-const exchangeWhy = $("exchangeWhy");
 const exchangeWhyWrap = $("exchangeWhyWrap");
+const exchangeWhy = $("exchangeWhy");
 
-const saleSource = $("saleSource");
-const saleSourceWrap = $("saleSourceWrap");
+const unrepairableSaleSourceWrap = $("unrepairableSaleSourceWrap");
+const unrepairableSaleSource = $("unrepairableSaleSource");
 
-const saleSerial = $("saleSerial");
-const saleSerialWrap = $("saleSerialWrap");
+const unrepairableSaleSerialWrap = $("unrepairableSaleSerialWrap");
+const unrepairableSaleSerial = $("unrepairableSaleSerial");
 
-const replacementPurchased = $("replacementPurchased");
 const replacementWrap = $("replacementWrap");
+const replacementPurchased = $("replacementPurchased");
+
+const refusedSaleSourceWrap = $("refusedSaleSourceWrap");
+const refusedSaleSource = $("refusedSaleSource");
+
+const refusedSaleSerialWrap = $("refusedSaleSerialWrap");
+const refusedSaleSerial = $("refusedSaleSerial");
 
 const advise = $("advise");
 
@@ -263,12 +297,17 @@ function updateConditional(){
 
 const outcome = repairOutcome.value;
 
+
+/* REPAIR */
+
+const isRepair =
+outcome === "Repair";
+
+
+/* UNREPAIRABLE */
+
 const isUnrepairable =
 outcome === "Unrepairable";
-
-const isRefused =
-outcome === "Refused to Repair";
-
 
 unrepairableWrap.classList.toggle(
 "hidden",
@@ -276,15 +315,13 @@ unrepairableWrap.classList.toggle(
 );
 
 
-replacementWrap.classList.toggle(
-"hidden",
-!isRefused
-);
-
-
 const isExchange =
 isUnrepairable &&
 unrepairableAction.value === "Exchange";
+
+const isUnrepairableSale =
+isUnrepairable &&
+unrepairableAction.value === "Sale";
 
 
 exchangeSourceWrap.classList.toggle(
@@ -292,12 +329,10 @@ exchangeSourceWrap.classList.toggle(
 !isExchange
 );
 
-
 exchangeSerialWrap.classList.toggle(
 "hidden",
 !(isExchange && exchangeSource.value === "DSC")
 );
-
 
 exchangeWhyWrap.classList.toggle(
 "hidden",
@@ -305,36 +340,57 @@ exchangeWhyWrap.classList.toggle(
 );
 
 
-const unrepairableSale =
-isUnrepairable &&
-unrepairableAction.value === "Sale";
+unrepairableSaleSourceWrap.classList.toggle(
+"hidden",
+!isUnrepairableSale
+);
+
+unrepairableSaleSerialWrap.classList.toggle(
+"hidden",
+!(
+isUnrepairableSale &&
+unrepairableSaleSource.value === "DSC"
+)
+);
 
 
-const refusedSale =
+/* REFUSED TO REPAIR */
+
+const isRefused =
+outcome === "Refused to Repair";
+
+replacementWrap.classList.toggle(
+"hidden",
+!isRefused
+);
+
+
+const refusedPurchasedYes =
 isRefused &&
 replacementPurchased.value === "Yes";
 
 
-const isSale =
-unrepairableSale || refusedSale;
-
-
-saleSourceWrap.classList.toggle(
+refusedSaleSourceWrap.classList.toggle(
 "hidden",
-!isSale
+!refusedPurchasedYes
 );
 
 
-saleSerialWrap.classList.toggle(
+refusedSaleSerialWrap.classList.toggle(
 "hidden",
-!(isSale && saleSource.value === "DSC")
+!(
+refusedPurchasedYes &&
+refusedSaleSource.value === "DSC"
+)
 );
 
+
+/* RETURN TRACKING */
 
 const showReturnTracking =
-outcome === "Repair" ||
+isRepair ||
 (
-outcome === "Refused to Repair" &&
+isRefused &&
 replacementPurchased.value === "No"
 );
 
@@ -371,10 +427,12 @@ lines.push(
 );
 
 
+/* UNREPAIRABLE */
+
 if(repairOutcome.value === "Unrepairable"){
 
 lines.push(
-`| Was it an exchange or a Sale?: ${unrepairableAction.value}`
+`| Was it an Exchange or a Sale?: ${unrepairableAction.value}`
 );
 
 
@@ -404,14 +462,14 @@ lines.push(
 if(unrepairableAction.value === "Sale"){
 
 lines.push(
-`| Sale source: ${saleSource.value}`
+`| Sale source: ${unrepairableSaleSource.value}`
 );
 
 
-if(saleSource.value === "DSC"){
+if(unrepairableSaleSource.value === "DSC"){
 
 lines.push(
-`| Sale serial number: ${saleSerial.value}`
+`| Sale serial number: ${unrepairableSaleSerial.value}`
 );
 
 }
@@ -420,6 +478,8 @@ lines.push(
 
 }
 
+
+/* REFUSED TO REPAIR */
 
 if(repairOutcome.value === "Refused to Repair"){
 
@@ -431,14 +491,14 @@ lines.push(
 if(replacementPurchased.value === "Yes"){
 
 lines.push(
-`| Sale source: ${saleSource.value}`
+`| Sale source: ${refusedSaleSource.value}`
 );
 
 
-if(saleSource.value === "DSC"){
+if(refusedSaleSource.value === "DSC"){
 
 lines.push(
-`| Sale serial number: ${saleSerial.value}`
+`| Sale serial number: ${refusedSaleSerial.value}`
 );
 
 }
@@ -452,6 +512,8 @@ lines.push(
 `| Advise customer: ${advise.value}`
 );
 
+
+/* RETURN TRACKING */
 
 const showReturnTracking =
 repairOutcome.value === "Repair" ||
@@ -487,9 +549,9 @@ output.textContent = lines.join("\n");
 }
 
 
-document.querySelectorAll(
-"textarea,input,select"
-).forEach(el => {
+document
+.querySelectorAll("textarea,input,select")
+.forEach(el => {
 
 el.addEventListener("input", () => {
 
@@ -519,7 +581,6 @@ output.textContent
 const toast =
 document.createElement("div");
 
-
 toast.textContent = "Copied!";
 
 toast.style.position = "fixed";
@@ -544,14 +605,14 @@ setTimeout(
 
 $("clearBtn").onclick = () => {
 
-document.querySelectorAll(
-"textarea,input"
-).forEach(e => e.value = "");
+document
+.querySelectorAll("textarea,input")
+.forEach(e => e.value = "");
 
 
-document.querySelectorAll(
-"select"
-).forEach(e => e.selectedIndex = 0);
+document
+.querySelectorAll("select")
+.forEach(e => e.selectedIndex = 0);
 
 
 updateConditional();
