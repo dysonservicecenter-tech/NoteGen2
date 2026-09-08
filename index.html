@@ -97,7 +97,6 @@ border:1px solid #ccc;
 <label>What was found with unit?</label>
 <textarea id="found"></textarea>
 
-
 <label>What was the repair outcome?</label>
 <select id="repairOutcome">
 <option value="">Select</option>
@@ -107,15 +106,18 @@ border:1px solid #ccc;
 </select>
 
 
-<!-- UNREPAIRABLE FLOW -->
+<!-- UNREPAIRABLE -->
 
 <div id="unrepairableWrap" class="hidden">
 
-<label>Was it an Exchange or a Sale?</label>
+<label>What was the resolution?</label>
 <select id="unrepairableAction">
 <option value="">Select</option>
 <option value="Exchange">Exchange</option>
 <option value="Sale">Sale</option>
+<option value="Customer Declined Replacement">
+Customer Declined Replacement
+</option>
 </select>
 
 </div>
@@ -231,7 +233,7 @@ border:1px solid #ccc;
 </div>
 
 
-<!-- ADVISE CUSTOMER -->
+<!-- ADVISE -->
 
 <label>Advise customer:</label>
 <textarea id="advise"></textarea>
@@ -344,17 +346,17 @@ function updateConditional(){
 
 const outcome = repairOutcome.value;
 
-
-/* REPAIR */
-
 const isRepair =
 outcome === "Repair";
 
-
-/* UNREPAIRABLE */
-
 const isUnrepairable =
 outcome === "Unrepairable";
+
+const isRefused =
+outcome === "Refused to Repair";
+
+
+/* UNREPAIRABLE */
 
 unrepairableWrap.classList.toggle(
 "hidden",
@@ -370,6 +372,11 @@ unrepairableAction.value === "Exchange";
 const isUnrepairableSale =
 isUnrepairable &&
 unrepairableAction.value === "Sale";
+
+
+const isDeclinedReplacement =
+isUnrepairable &&
+unrepairableAction.value === "Customer Declined Replacement";
 
 
 /* EXCHANGE */
@@ -414,10 +421,6 @@ unrepairableSaleSource.value === "DSC"
 
 /* REFUSED TO REPAIR */
 
-const isRefused =
-outcome === "Refused to Repair";
-
-
 replacementWrap.classList.toggle(
 "hidden",
 !isRefused
@@ -447,8 +450,9 @@ refusedSaleSource.value === "DSC"
 /* RECYCLE */
 
 const showRecycleSection =
-isRefused ||
-isUnrepairableSale;
+isUnrepairableSale ||
+isDeclinedReplacement ||
+isRefused;
 
 
 recycleWrap.classList.toggle(
@@ -470,12 +474,25 @@ recycleSerialWrap.classList.toggle(
 
 /* RETURN TRACKING */
 
-const showReturnTracking =
-isRepair ||
-(
+const repairNeedsTracking =
+isRepair;
+
+
+const declinedNeedsTracking =
+isDeclinedReplacement &&
+recycleChoice.value === "No";
+
+
+const refusedNeedsTracking =
 isRefused &&
-replacementPurchased.value === "No"
-);
+replacementPurchased.value === "No" &&
+recycleChoice.value === "No";
+
+
+const showReturnTracking =
+repairNeedsTracking ||
+declinedNeedsTracking ||
+refusedNeedsTracking;
 
 
 returnTrackingSection.classList.toggle(
@@ -518,7 +535,7 @@ lines.push(
 if(repairOutcome.value === "Unrepairable"){
 
 lines.push(
-`| Was it an Exchange or a Sale?: ${unrepairableAction.value}`
+`| What was the resolution?: ${unrepairableAction.value}`
 );
 
 
@@ -564,6 +581,26 @@ lines.push(
 
 }
 
+
+lines.push(
+`| Did the customer choose to recycle their unit?: ${recycleChoice.value}`
+);
+
+
+if(recycleChoice.value === "Yes"){
+
+lines.push(
+`| Recycled unit serial number: ${recycleSerial.value}`
+);
+
+}
+
+}
+
+
+/* CUSTOMER DECLINED REPLACEMENT */
+
+if(unrepairableAction.value === "Customer Declined Replacement"){
 
 lines.push(
 `| Did the customer choose to recycle their unit?: ${recycleChoice.value}`
@@ -635,12 +672,26 @@ lines.push(
 
 /* RETURN TRACKING */
 
-const showReturnTracking =
-repairOutcome.value === "Repair" ||
-(
+const repairNeedsTracking =
+repairOutcome.value === "Repair";
+
+
+const declinedNeedsTracking =
+repairOutcome.value === "Unrepairable" &&
+unrepairableAction.value === "Customer Declined Replacement" &&
+recycleChoice.value === "No";
+
+
+const refusedNeedsTracking =
 repairOutcome.value === "Refused to Repair" &&
-replacementPurchased.value === "No"
-);
+replacementPurchased.value === "No" &&
+recycleChoice.value === "No";
+
+
+const showReturnTracking =
+repairNeedsTracking ||
+declinedNeedsTracking ||
+refusedNeedsTracking;
 
 
 if(showReturnTracking){
