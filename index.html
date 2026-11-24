@@ -97,13 +97,37 @@ border:1px solid #ccc;
 <label>What was found with unit?</label>
 <textarea id="found"></textarea>
 
+
 <label>What was the repair outcome?</label>
 <select id="repairOutcome">
 <option value="">Select</option>
 <option value="Repair">Repair</option>
+<option value="No Fault Found">No Fault Found</option>
 <option value="Unrepairable">Unrepairable</option>
 <option value="Refused to Repair">Refused to Repair</option>
 </select>
+
+
+<!-- REPAIR SALES ORDER -->
+
+<div id="repairSalesOrderWrap" class="hidden">
+
+<label>Was any customer-fit part shipped from the warehouse through a Sales Order because it was unavailable at the DSC?</label>
+<select id="repairSalesOrder">
+<option value="">Select</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+
+</div>
+
+
+<div id="repairSalesOrderNumberWrap" class="hidden">
+
+<label>Enter the Sales Order number:</label>
+<input type="text" id="repairSalesOrderNumber">
+
+</div>
 
 
 <!-- UNREPAIRABLE -->
@@ -233,10 +257,21 @@ Customer Declined Replacement
 </div>
 
 
-<!-- ADVISE -->
+<!-- ADVISE CUSTOMER -->
 
 <label>Advise customer:</label>
 <textarea id="advise"></textarea>
+
+
+<!-- NO FAULT FOUND -->
+
+<div id="noFaultFoundWrap" class="hidden">
+
+<label>No Fault Found:</label>
+
+<textarea id="noFaultFoundNotes"></textarea>
+
+</div>
 
 
 <!-- RETURN TRACKING -->
@@ -244,6 +279,7 @@ Customer Declined Replacement
 <div id="returnTrackingSection" class="hidden">
 
 <label>Return tracking number:</label>
+
 <select id="trackingMode">
 <option value="">Select</option>
 <option value="N/A Walk-In">N/A Walk-In</option>
@@ -261,8 +297,13 @@ Customer Declined Replacement
 
 
 <div class="actions">
+
 <button id="copyBtn">Copy Notes</button>
-<button id="clearBtn" class="secondary">Clear</button>
+
+<button id="clearBtn" class="secondary">
+Clear
+</button>
+
 </div>
 
 </div>
@@ -281,55 +322,160 @@ Customer Declined Replacement
 
 <script>
 
-const $ = id => document.getElementById(id);
+const $ = id =>
+document.getElementById(id);
+
+
+/* BASIC FIELDS */
 
 const issue = $("issue");
 const found = $("found");
 
-const repairOutcome = $("repairOutcome");
+const repairOutcome =
+$("repairOutcome");
 
-const unrepairableWrap = $("unrepairableWrap");
-const unrepairableAction = $("unrepairableAction");
 
-const exchangeSourceWrap = $("exchangeSourceWrap");
-const exchangeSource = $("exchangeSource");
+/* REPAIR SALES ORDER */
 
-const exchangeSerialWrap = $("exchangeSerialWrap");
-const exchangeSerial = $("exchangeSerial");
+const repairSalesOrderWrap =
+$("repairSalesOrderWrap");
 
-const exchangeWhyWrap = $("exchangeWhyWrap");
-const exchangeWhy = $("exchangeWhy");
+const repairSalesOrder =
+$("repairSalesOrder");
 
-const unrepairableSaleSourceWrap = $("unrepairableSaleSourceWrap");
-const unrepairableSaleSource = $("unrepairableSaleSource");
+const repairSalesOrderNumberWrap =
+$("repairSalesOrderNumberWrap");
 
-const unrepairableSaleSerialWrap = $("unrepairableSaleSerialWrap");
-const unrepairableSaleSerial = $("unrepairableSaleSerial");
+const repairSalesOrderNumber =
+$("repairSalesOrderNumber");
 
-const replacementWrap = $("replacementWrap");
-const replacementPurchased = $("replacementPurchased");
 
-const refusedSaleSourceWrap = $("refusedSaleSourceWrap");
-const refusedSaleSource = $("refusedSaleSource");
+/* UNREPAIRABLE */
 
-const refusedSaleSerialWrap = $("refusedSaleSerialWrap");
-const refusedSaleSerial = $("refusedSaleSerial");
+const unrepairableWrap =
+$("unrepairableWrap");
 
-const recycleWrap = $("recycleWrap");
-const recycleChoice = $("recycleChoice");
+const unrepairableAction =
+$("unrepairableAction");
 
-const recycleSerialWrap = $("recycleSerialWrap");
-const recycleSerial = $("recycleSerial");
 
-const advise = $("advise");
+/* EXCHANGE */
 
-const returnTrackingSection = $("returnTrackingSection");
-const trackingMode = $("trackingMode");
-const trackingWrap = $("trackingWrap");
-const tracking = $("tracking");
+const exchangeSourceWrap =
+$("exchangeSourceWrap");
 
-const output = $("output");
+const exchangeSource =
+$("exchangeSource");
 
+const exchangeSerialWrap =
+$("exchangeSerialWrap");
+
+const exchangeSerial =
+$("exchangeSerial");
+
+const exchangeWhyWrap =
+$("exchangeWhyWrap");
+
+const exchangeWhy =
+$("exchangeWhy");
+
+
+/* UNREPAIRABLE SALE */
+
+const unrepairableSaleSourceWrap =
+$("unrepairableSaleSourceWrap");
+
+const unrepairableSaleSource =
+$("unrepairableSaleSource");
+
+const unrepairableSaleSerialWrap =
+$("unrepairableSaleSerialWrap");
+
+const unrepairableSaleSerial =
+$("unrepairableSaleSerial");
+
+
+/* REFUSED TO REPAIR */
+
+const replacementWrap =
+$("replacementWrap");
+
+const replacementPurchased =
+$("replacementPurchased");
+
+const refusedSaleSourceWrap =
+$("refusedSaleSourceWrap");
+
+const refusedSaleSource =
+$("refusedSaleSource");
+
+const refusedSaleSerialWrap =
+$("refusedSaleSerialWrap");
+
+const refusedSaleSerial =
+$("refusedSaleSerial");
+
+
+/* RECYCLE */
+
+const recycleWrap =
+$("recycleWrap");
+
+const recycleChoice =
+$("recycleChoice");
+
+const recycleSerialWrap =
+$("recycleSerialWrap");
+
+const recycleSerial =
+$("recycleSerial");
+
+
+/* ADVISE CUSTOMER */
+
+const advise =
+$("advise");
+
+
+/* NO FAULT FOUND */
+
+const noFaultFoundWrap =
+$("noFaultFoundWrap");
+
+const noFaultFoundNotes =
+$("noFaultFoundNotes");
+
+
+/* RETURN TRACKING */
+
+const returnTrackingSection =
+$("returnTrackingSection");
+
+const trackingMode =
+$("trackingMode");
+
+const trackingWrap =
+$("trackingWrap");
+
+const tracking =
+$("tracking");
+
+
+const output =
+$("output");
+
+
+/* NO FAULT FOUND PRE-FILLED TEXT */
+
+const noFaultAdviseDefault =
+`Unit performance tested and confirmed to meet Dyson SQS standards. Customer advised of No Fault Found results and provided troubleshooting recommendations. Initial outreach completed via text/email on [DATE/TIME]. Follow-up phone call and voicemail completed on [DATE/TIME].`;
+
+
+const noFaultProcessDefault =
+`No Fault Found documented. Unit held for 48 hours from initial outreach. [NO RESPONSE RECEIVED / CUSTOMER CONTACTED]. Unit [RETURNED TO CUSTOMER / CUSTOMER PICKED UP UNIT] per No Fault Found process.`;
+
+
+/* SOURCE DISPLAY */
 
 function sourceText(value){
 
@@ -342,18 +488,96 @@ return value;
 }
 
 
+/* CONDITIONAL FORM LOGIC */
+
 function updateConditional(){
 
-const outcome = repairOutcome.value;
+const outcome =
+repairOutcome.value;
+
 
 const isRepair =
 outcome === "Repair";
 
+
+const isNoFaultFound =
+outcome === "No Fault Found";
+
+
 const isUnrepairable =
 outcome === "Unrepairable";
 
+
 const isRefused =
 outcome === "Refused to Repair";
+
+
+/* REPAIR SALES ORDER */
+
+repairSalesOrderWrap.classList.toggle(
+"hidden",
+!isRepair
+);
+
+
+repairSalesOrderNumberWrap.classList.toggle(
+"hidden",
+!(
+isRepair &&
+repairSalesOrder.value === "Yes"
+)
+);
+
+
+/* NO FAULT FOUND */
+
+noFaultFoundWrap.classList.toggle(
+"hidden",
+!isNoFaultFound
+);
+
+
+if(isNoFaultFound){
+
+if(advise.value.trim() === ""){
+
+advise.value =
+noFaultAdviseDefault;
+
+advise.dataset.nffPrefill =
+"true";
+
+}
+
+
+if(noFaultFoundNotes.value.trim() === ""){
+
+noFaultFoundNotes.value =
+noFaultProcessDefault;
+
+}
+
+}
+
+
+/*
+If employee switches away from NFF,
+only remove the Advise message if it
+was automatically inserted and hasn't
+been changed.
+*/
+
+if(
+!isNoFaultFound &&
+advise.dataset.nffPrefill === "true" &&
+advise.value === noFaultAdviseDefault
+){
+
+advise.value = "";
+
+delete advise.dataset.nffPrefill;
+
+}
 
 
 /* UNREPAIRABLE */
@@ -366,17 +590,20 @@ unrepairableWrap.classList.toggle(
 
 const isExchange =
 isUnrepairable &&
-unrepairableAction.value === "Exchange";
+unrepairableAction.value ===
+"Exchange";
 
 
 const isUnrepairableSale =
 isUnrepairable &&
-unrepairableAction.value === "Sale";
+unrepairableAction.value ===
+"Sale";
 
 
 const isDeclinedReplacement =
 isUnrepairable &&
-unrepairableAction.value === "Customer Declined Replacement";
+unrepairableAction.value ===
+"Customer Declined Replacement";
 
 
 /* EXCHANGE */
@@ -414,7 +641,8 @@ unrepairableSaleSerialWrap.classList.toggle(
 "hidden",
 !(
 isUnrepairableSale &&
-unrepairableSaleSource.value === "DSC"
+unrepairableSaleSource.value ===
+"DSC"
 )
 );
 
@@ -478,6 +706,10 @@ const repairNeedsTracking =
 isRepair;
 
 
+const noFaultNeedsTracking =
+isNoFaultFound;
+
+
 const declinedNeedsTracking =
 isDeclinedReplacement &&
 recycleChoice.value === "No";
@@ -491,6 +723,7 @@ recycleChoice.value === "No";
 
 const showReturnTracking =
 repairNeedsTracking ||
+noFaultNeedsTracking ||
 declinedNeedsTracking ||
 refusedNeedsTracking;
 
@@ -504,11 +737,14 @@ returnTrackingSection.classList.toggle(
 trackingWrap.classList.toggle(
 "hidden",
 !showReturnTracking ||
-trackingMode.value !== "Enter Tracking"
+trackingMode.value !==
+"Enter Tracking"
 );
 
 }
 
+
+/* GENERATED NOTES */
 
 function buildNotes(){
 
@@ -530,9 +766,31 @@ lines.push(
 );
 
 
+/* REPAIR */
+
+if(
+repairOutcome.value === "Repair" &&
+repairSalesOrder.value === "Yes"
+){
+
+lines.push(
+`| Parts shipped from Warehouse via Sales Order: Yes`
+);
+
+
+lines.push(
+`| Sales Order number: ${repairSalesOrderNumber.value}`
+);
+
+}
+
+
 /* UNREPAIRABLE */
 
-if(repairOutcome.value === "Unrepairable"){
+if(
+repairOutcome.value ===
+"Unrepairable"
+){
 
 lines.push(
 `| What was the resolution?: ${unrepairableAction.value}`
@@ -541,14 +799,20 @@ lines.push(
 
 /* EXCHANGE */
 
-if(unrepairableAction.value === "Exchange"){
+if(
+unrepairableAction.value ===
+"Exchange"
+){
 
 lines.push(
 `| Unit provided from: ${sourceText(exchangeSource.value)}`
 );
 
 
-if(exchangeSource.value === "DSC"){
+if(
+exchangeSource.value ===
+"DSC"
+){
 
 lines.push(
 `| Replacement unit serial number: ${exchangeSerial.value}`
@@ -566,14 +830,20 @@ lines.push(
 
 /* SALE */
 
-if(unrepairableAction.value === "Sale"){
+if(
+unrepairableAction.value ===
+"Sale"
+){
 
 lines.push(
 `| Unit provided from: ${sourceText(unrepairableSaleSource.value)}`
 );
 
 
-if(unrepairableSaleSource.value === "DSC"){
+if(
+unrepairableSaleSource.value ===
+"DSC"
+){
 
 lines.push(
 `| Replacement unit serial number: ${unrepairableSaleSerial.value}`
@@ -587,7 +857,10 @@ lines.push(
 );
 
 
-if(recycleChoice.value === "Yes"){
+if(
+recycleChoice.value ===
+"Yes"
+){
 
 lines.push(
 `| Recycled unit serial number: ${recycleSerial.value}`
@@ -598,16 +871,22 @@ lines.push(
 }
 
 
-/* CUSTOMER DECLINED REPLACEMENT */
+/* CUSTOMER DECLINED */
 
-if(unrepairableAction.value === "Customer Declined Replacement"){
+if(
+unrepairableAction.value ===
+"Customer Declined Replacement"
+){
 
 lines.push(
 `| Did the customer choose to recycle their unit?: ${recycleChoice.value}`
 );
 
 
-if(recycleChoice.value === "Yes"){
+if(
+recycleChoice.value ===
+"Yes"
+){
 
 lines.push(
 `| Recycled unit serial number: ${recycleSerial.value}`
@@ -622,21 +901,30 @@ lines.push(
 
 /* REFUSED TO REPAIR */
 
-if(repairOutcome.value === "Refused to Repair"){
+if(
+repairOutcome.value ===
+"Refused to Repair"
+){
 
 lines.push(
 `| Did the customer purchase a replacement?: ${replacementPurchased.value}`
 );
 
 
-if(replacementPurchased.value === "Yes"){
+if(
+replacementPurchased.value ===
+"Yes"
+){
 
 lines.push(
 `| Unit provided from: ${sourceText(refusedSaleSource.value)}`
 );
 
 
-if(refusedSaleSource.value === "DSC"){
+if(
+refusedSaleSource.value ===
+"DSC"
+){
 
 lines.push(
 `| Replacement unit serial number: ${refusedSaleSerial.value}`
@@ -652,7 +940,10 @@ lines.push(
 );
 
 
-if(recycleChoice.value === "Yes"){
+if(
+recycleChoice.value ===
+"Yes"
+){
 
 lines.push(
 `| Recycled unit serial number: ${recycleSerial.value}`
@@ -670,33 +961,63 @@ lines.push(
 );
 
 
+/* NO FAULT FOUND */
+
+if(
+repairOutcome.value ===
+"No Fault Found"
+){
+
+lines.push(
+`| No Fault Found: ${noFaultFoundNotes.value}`
+);
+
+}
+
+
 /* RETURN TRACKING */
 
 const repairNeedsTracking =
-repairOutcome.value === "Repair";
+repairOutcome.value ===
+"Repair";
+
+
+const noFaultNeedsTracking =
+repairOutcome.value ===
+"No Fault Found";
 
 
 const declinedNeedsTracking =
-repairOutcome.value === "Unrepairable" &&
-unrepairableAction.value === "Customer Declined Replacement" &&
-recycleChoice.value === "No";
+repairOutcome.value ===
+"Unrepairable" &&
+unrepairableAction.value ===
+"Customer Declined Replacement" &&
+recycleChoice.value ===
+"No";
 
 
 const refusedNeedsTracking =
-repairOutcome.value === "Refused to Repair" &&
-replacementPurchased.value === "No" &&
-recycleChoice.value === "No";
+repairOutcome.value ===
+"Refused to Repair" &&
+replacementPurchased.value ===
+"No" &&
+recycleChoice.value ===
+"No";
 
 
 const showReturnTracking =
 repairNeedsTracking ||
+noFaultNeedsTracking ||
 declinedNeedsTracking ||
 refusedNeedsTracking;
 
 
 if(showReturnTracking){
 
-if(trackingMode.value === "N/A Walk-In"){
+if(
+trackingMode.value ===
+"N/A Walk-In"
+){
 
 lines.push(
 `| Return tracking number: N/A Walk-In`
@@ -705,7 +1026,10 @@ lines.push(
 }
 
 
-else if(trackingMode.value === "Enter Tracking"){
+else if(
+trackingMode.value ===
+"Enter Tracking"
+){
 
 lines.push(
 `| Return tracking number: ${tracking.value}`
@@ -716,34 +1040,68 @@ lines.push(
 }
 
 
-output.textContent = lines.join("\n");
+output.textContent =
+lines.join("\n");
 
 }
 
 
+/* FORM EVENTS */
+
 document
-.querySelectorAll("textarea,input,select")
+.querySelectorAll(
+"textarea,input,select"
+)
 .forEach(el => {
 
-el.addEventListener("input", () => {
+
+el.addEventListener(
+"input",
+() => {
+
+/*
+If employee edits the automatically
+inserted NFF Advise message, mark
+it as their own text.
+*/
+
+if(
+el === advise &&
+advise.value !==
+noFaultAdviseDefault
+){
+
+delete advise.dataset.nffPrefill;
+
+}
+
 
 updateConditional();
+
 buildNotes();
 
-});
+}
+);
 
 
-el.addEventListener("change", () => {
+el.addEventListener(
+"change",
+() => {
 
 updateConditional();
+
 buildNotes();
 
-});
+}
+);
 
 });
 
 
-$("copyBtn").onclick = async () => {
+/* COPY NOTES */
+
+$("copyBtn").onclick =
+async () => {
 
 await navigator.clipboard.writeText(
 output.textContent
@@ -754,18 +1112,35 @@ const toast =
 document.createElement("div");
 
 
-toast.textContent = "Copied!";
-
-toast.style.position = "fixed";
-toast.style.bottom = "20px";
-toast.style.right = "20px";
-toast.style.background = "#111";
-toast.style.color = "#fff";
-toast.style.padding = "10px 14px";
-toast.style.borderRadius = "10px";
+toast.textContent =
+"Copied!";
 
 
-document.body.appendChild(toast);
+toast.style.position =
+"fixed";
+
+toast.style.bottom =
+"20px";
+
+toast.style.right =
+"20px";
+
+toast.style.background =
+"#111";
+
+toast.style.color =
+"#fff";
+
+toast.style.padding =
+"10px 14px";
+
+toast.style.borderRadius =
+"10px";
+
+
+document.body.appendChild(
+toast
+);
 
 
 setTimeout(
@@ -776,25 +1151,44 @@ setTimeout(
 };
 
 
-$("clearBtn").onclick = () => {
+/* CLEAR */
+
+$("clearBtn").onclick =
+() => {
+
 
 document
-.querySelectorAll("textarea,input")
-.forEach(e => e.value = "");
+.querySelectorAll(
+"textarea,input"
+)
+.forEach(
+e => e.value = ""
+);
 
 
 document
-.querySelectorAll("select")
-.forEach(e => e.selectedIndex = 0);
+.querySelectorAll(
+"select"
+)
+.forEach(
+e => e.selectedIndex = 0
+);
+
+
+delete advise.dataset.nffPrefill;
 
 
 updateConditional();
+
 buildNotes();
 
 };
 
 
+/* INITIAL LOAD */
+
 updateConditional();
+
 buildNotes();
 
 </script>
